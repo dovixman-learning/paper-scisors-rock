@@ -182,6 +182,7 @@
             });
         });
 
+        // Handling mouse and touch events
         gameArea.addEventListener('mousedown', () => (mouseDown = true));
         gameArea.addEventListener('mouseup', () => (mouseDown = false));
         gameArea.addEventListener('mousemove', (event) => {
@@ -189,6 +190,18 @@
                 const rect = gameArea.getBoundingClientRect();
                 const x = event.clientX - rect.left;
                 const y = event.clientY - rect.top;
+                createElement(selectedType, x, y);
+            }
+        });
+
+        // Touch events for mobile devices
+        gameArea.addEventListener('touchstart', () => (mouseDown = true));
+        gameArea.addEventListener('touchend', () => (mouseDown = false));
+        gameArea.addEventListener('touchmove', (event) => {
+            if (mouseDown) {
+                const rect = gameArea.getBoundingClientRect();
+                const x = event.touches[0].clientX - rect.left;
+                const y = event.touches[0].clientY - rect.top;
                 createElement(selectedType, x, y);
             }
         });
@@ -245,20 +258,17 @@
             activeCollisions.clear();
 
             const types = new Set(elements.map(el => el.dataset.type));
-            if (types.size === 1 && elements.length > 0) {
-                clearInterval(interval);
+            if (types.size === 1) {
                 showWinner([...types][0]);
+                clearInterval(interval);
             }
         }
 
         function checkCollision(el1, el2) {
-            const x1 = parseFloat(el1.style.left) + 20;
-            const y1 = parseFloat(el1.style.top) + 20;
-            const x2 = parseFloat(el2.style.left) + 20;
-            const y2 = parseFloat(el2.style.top) + 20;
-
-            const distance = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
-            return distance < 40;
+            const r1 = el1.getBoundingClientRect();
+            const r2 = el2.getBoundingClientRect();
+            const distance = Math.sqrt(Math.pow(r1.x - r2.x, 2) + Math.pow(r1.y - r2.y, 2));
+            return distance < 40; // Adjust to the radius of the elements
         }
 
         function handleCollision(el1, el2) {
