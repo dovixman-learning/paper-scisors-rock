@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Piedra, Papel, Tijeras</title>
+    <style>
+        /* General Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #e0e5ec;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            color: #333;
+            padding: 20px;
+        }
+
+        /* Neumorphic container for the game area */
+        #gameArea {
+            position: relative;
+            width: 80%;
+            height: 60%;
+            background-color: #e0e5ec;
+            border-radius: 15px;
+            box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.2), -10px -10px 20px rgba(255, 255, 255, 0.7);
+            overflow: hidden;
+        }
+
+        /* Controls area */
+        #gameControls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        /* Neumorphic style for buttons and inputs */
+        .control-label, .control-input, button {
+            border-radius: 10px;
+            padding: 10px;
+            background-color: #e0e5ec;
+            box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.1), -8px -8px 16px rgba(255, 255, 255, 0.6);
+        }
+
+        .control-label {
+            color: #4e4e4e;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        input[type="number"], input[type="range"] {
+            width: 60px;
+            height: 30px;
+            text-align: center;
+            background: #e0e5ec;
+            border: 1px solid #ccc;
+            box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1), -4px -4px 8px rgba(255, 255, 255, 0.6);
+        }
+
+        button {
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* Winner Screen */
+        #winner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            display: none;
+        }
+
+        #winner img {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 10px;
+        }
+
+        #winner h1 {
+            font-size: 24px;
+            color: #333;
+        }
+
+        #restart {
+            padding: 12px 24px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 18px;
+            border: none;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        #restart:hover {
+            background-color: #45a049;
+        }
+
+        /* Toolbar for selection */
+        #toolbar {
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            padding: 10px;
+            background-color: #e0e5ec;
+            border-radius: 20px;
+            box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.1), inset -2px -2px 5px rgba(255, 255, 255, 0.7);
+        }
+
+        .tool {
+            cursor: pointer;
+            font-size: 24px;
+            padding: 15px;
+            border-radius: 50%;
+            background-color: #e0e5ec;
+            box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1), -4px -4px 8px rgba(255, 255, 255, 0.6);
+            transition: background-color 0.3s ease;
+        }
+
+        .tool.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        /* Mobile Responsive */
+        @media screen and (max-width: 768px) {
+            #gameArea {
+                width: 100%;
+                height: 50%;
+            }
+
+            #gameControls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            input[type="number"], input[type="range"] {
+                width: 100%;
+            }
+
+            #toolbar {
+                flex-direction: column;
+                padding: 15px;
+                width: 90%;
+            }
+
+            .tool {
+                margin-bottom: 10px;
+            }
+
+            #winner h1 {
+                font-size: 20px;
+            }
+
+            #restart {
+                padding: 10px 20px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Game Controls -->
+    <div id="gameControls">
+        <label for="stones" class="control-label">Piedras:</label>
+        <input type="number" id="stones" min="0" max="20" value="5" class="control-input">
+        
+        <label for="papers" class="control-label">Papel:</label>
+        <input type="number" id="papers" min="0" max="20" value="5" class="control-input">
+        
+        <label for="scissors" class="control-label">Tijeras:</label>
+        <input type="number" id="scissors" min="0" max="20" value="5" class="control-input">
+        
+        <label for="speed" class="control-label">Velocidad:</label>
+        <input type="range" id="speed" min="1" max="10" value="5" class="control-input">
+        
+        <button onclick="startGame()">Iniciar Juego</button>
+    </div>
+
+    <!-- Game Area -->
+    <div id="gameArea"></div>
+
+    <!-- Winner Screen -->
+    <div id="winner">
+        <img id="winnerImage" src="" alt="Winner">
+        <h1>Winner!</h1>
+        <button id="restart" onclick="restartGame()">Reiniciar</button>
+    </div>
+
+    <!-- Toolbar -->
+    <div id="toolbar">
+        <div class="tool active" id="selectStone" data-type="stone">🪨</div>
+        <div class="tool" id="selectPaper" data-type="paper">📄</div>
+        <div class="tool" id="selectScissors" data-type="scissors">✂️</div>
+    </div>
+
+    <script>
+        // The game logic goes here (same as previous code)
+        const gameArea = document.getElementById('gameArea');
+        const winnerScreen = document.getElementById('winner');
+        const winnerImage = document.getElementById('winnerImage');
+        const speedControl = document.getElementById('speed');
+        const tools = document.querySelectorAll('.tool');
+        let selectedType = 'stone';
+        let elements = [];
+        let interval;
+        let speed = 5;
+        let mouseDown = false;
+        const activeCollisions = new Set();
+
+        function startGame() {
+            clearInterval(interval);
+            gameArea.innerHTML = '';
+            elements = [];
+            winnerScreen.style.display = 'none';
+
+            const stoneCount = parseInt(document.getElementById('stones').value);
+            const paperCount = parseInt(document.getElementById('papers').value);
+            const scissorsCount = parseInt(document.getElementById('scissors').value);
+
+            createElements('stone', stoneCount);
+            createElements('paper', paperCount);
+            createElements('scissors', scissorsCount);
+
+            interval = setInterval(updatePositions, 50);
+        }
+
+        function createElements(type, count) {
+            for (let i = 0; i < count; i++) {
+                createElement(type, Math.random() * (gameArea.offsetWidth - 40), Math.random() * (gameArea.offsetHeight - 40));
+            }
+        }
+
+        speedControl.addEventListener('input', () => {
+            speed = parseInt(speedControl.value);
+        });
+
+        tools.forEach(tool => {
+            tool.addEventListener('click', () => {
+                tools.forEach(t => t.classList.remove('active'));
+                tool.classList.add('active');
+                selectedType = tool.getAttribute('data-type');
+            });
+        });
+
+        document.addEventListener('mousedown', (e) => {
+            mouseDown = true;
+            createElement(selectedType, e.clientX - gameArea.offsetLeft, e.clientY - gameArea.offsetTop);
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (mouseDown) {
+                createElement(selectedType, e.clientX - gameArea.offsetLeft, e.clientY - gameArea.offsetTop);
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            mouseDown = false;
+        });
+
+        function createElement(type, x, y) {
+            const el = document.createElement('div');
+            el.classList.add('element', type);
+            el.dataset.type = type;
+            el.dataset.dx = (Math.random() - 0.5) * 2 * speed;
+            el.dataset.dy = (Math.random() - 0.5) * 2 * speed;
+            el.style.left = `${x}px`;
+            el.style.top = `${y}px`;
+            el.style.width = '40px';
+            el.style.height = '40px';
+            el.style.position = 'absolute';
+            el.style.borderRadius = '50%';
+            el.style.display = 'flex';
+            el.style.justifyContent = 'center';
+            el.style.alignItems = 'center';
+            el.style.fontSize = '24px';
+            el.innerText = type === 'stone' ? '🪨' : type === 'paper' ? '📄' : '✂️';
+            gameArea.appendChild(el);
+            elements.push(el);
+        }
+
+        function updatePositions() {
+            elements.forEach((el, index) => {
+                let x = parseFloat(el.style.left);
+                let y = parseFloat(el.style.top);
+                let dx = parseFloat(el.dataset.dx);
+                let dy = parseFloat(el.dataset.dy);
+
+                if (x + 40 > gameArea.offsetWidth || x < 0) dx *= -1;
+                if (y + 40 > gameArea.offsetHeight || y < 0) dy *= -1;
+
+                el.style.left = `${x + dx}px`;
+                el.style.top = `${y + dy}px`;
+
+                el.dataset.dx = dx;
+                el.dataset.dy = dy;
+
+                detectCollisions(el);
+            });
+        }
+
+        function detectCollisions(el1) {
+            elements.forEach((el2) => {
+                if (el1 !== el2 && !activeCollisions.has(el1, el2)) {
+                    const dist = Math.sqrt(Math.pow(parseFloat(el1.style.left) - parseFloat(el2.style.left), 2) + Math.pow(parseFloat(el1.style.top) - parseFloat(el2.style.top), 2));
+                    if (dist < 40) {
+                        activeCollisions.add(el1, el2);
+                        handleCollision(el1, el2);
+                    }
+                }
+            });
+        }
+
+        function handleCollision(el1, el2) {
+            const rules = {
+                stone: 'scissors',
+                paper: 'stone',
+                scissors: 'paper',
+            };
+
+            if (rules[el1.dataset.type] === el2.dataset.type) {
+                el2.classList.remove(el2.dataset.type);
+                el2.dataset.type = el1.dataset.type;
+                el2.classList.add(el1.dataset.type);
+                el2.innerText = el1.dataset.type === 'stone' ? '🪨' : el1.dataset.type === 'paper' ? '📄' : '✂️';
+            } else if (rules[el2.dataset.type] === el1.dataset.type) {
+                el1.classList.remove(el1.dataset.type);
+                el1.dataset.type = el2.dataset.type;
+                el1.classList.add(el2.dataset.type);
+                el1.innerText = el2.dataset.type === 'stone' ? '🪨' : el2.dataset.type === 'paper' ? '📄' : '✂️';
+            }
+
+            const tempDx = el1.dataset.dx;
+            const tempDy = el1.dataset.dy;
+
+            el1.dataset.dx = el2.dataset.dx;
+            el1.dataset.dy = el2.dataset.dy;
+            el2.dataset.dx = tempDx;
+            el2.dataset.dy = tempDy;
+        }
+
+        function showWinner(winnerType) {
+            winnerScreen.style.display = 'block';
+            winnerImage.src =
+                winnerType === 'stone'
+                    ? 'https://img.icons8.com/emoji/96/rock.png'
+                    : winnerType === 'paper'
+                    ? 'https://img.icons8.com/emoji/96/page-facing-up.png'
+                    : 'https://img.icons8.com/emoji/96/scissors.png';
+        }
+
+        function restartGame() {
+            startGame();
+        }
+    </script>
+</body>
+</html>
